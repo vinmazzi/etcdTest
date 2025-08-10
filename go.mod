@@ -2,7 +2,10 @@ module etcdTest
 
 go 1.24.6
 
-require go.etcd.io/etcd/client/v3 v3.6.4
+require (
+	github.com/lib/pq v1.10.9
+	go.etcd.io/etcd/client/v3 v3.6.4
+)
 
 require (
 	github.com/coreos/go-semver v0.3.1 // indirect

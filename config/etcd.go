@@ -50,13 +50,12 @@ func (ecs *EtcdConfigServer) GetConfiguration() (*core.Config, error) {
 
 	for _, v := range resp.Kvs {
 		conf.ConnectionString = string(v.Value)
-		// log.Println("This is what I found on this key:", string(v.Value))
 	}
 
 	return &conf, nil
 }
 
-func (ecs *EtcdConfigServer) WatchConfig(ctx context.Context, config *core.Config) {
+func (ecs *EtcdConfigServer) WatchConfig(ctx context.Context, config *core.Config, notifyChan chan string) {
 	ticker := time.NewTicker(time.Second)
 
 	go func() {
@@ -64,11 +63,13 @@ func (ecs *EtcdConfigServer) WatchConfig(ctx context.Context, config *core.Confi
 			cNew, err := ecs.GetConfiguration()
 			if err != nil {
 				log.Println("There is an error trying to get the configuration on watch: ", err)
+				return
 			}
 
 			if *config != *cNew {
 				log.Println("Changing the config object")
 				*config = *cNew
+				notifyChan <- config.ConnectionString
 			}
 		}
 	}()

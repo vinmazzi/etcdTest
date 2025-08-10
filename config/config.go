@@ -20,5 +20,4 @@ func NewConfigServer(configServerType string) core.ConfigServer {
 	}
 
 	return nil
-
 }

@@ -2,7 +2,6 @@ package config
 
 import (
 	"context"
-	"crypto/sha256"
 	"errors"
 	"etcdTest/core"
 	"log"
@@ -57,23 +56,8 @@ func (ecs *EtcdConfigServer) GetConfiguration() (*core.Config, error) {
 	return &conf, nil
 }
 
-func Getsha256Hash(value []byte) (string, error) {
-	hash := sha256.New()
-	if _, err := hash.Write(value); err != nil {
-		log.Println("There is an error getting the hash: ", err)
-		return "", err
-	}
-	return string(hash.Sum(nil)), nil
-}
-
 func (ecs *EtcdConfigServer) WatchConfig(ctx context.Context, config *core.Config) {
-	var hash string
-	var err error
-
 	ticker := time.NewTicker(time.Second)
-	if hash, err = Getsha256Hash([]byte(config.ConnectionString)); err != nil {
-		log.Println(err)
-	}
 
 	go func() {
 		for range ticker.C {
@@ -81,15 +65,10 @@ func (ecs *EtcdConfigServer) WatchConfig(ctx context.Context, config *core.Confi
 			if err != nil {
 				log.Println("There is an error trying to get the configuration on watch: ", err)
 			}
-			newHash, err := Getsha256Hash([]byte(cNew.ConnectionString))
-			if err != nil {
-				log.Println("There is an error here: ", err)
-			}
 
-			if newHash != hash {
+			if *config != *cNew {
 				log.Println("Changing the config object")
 				*config = *cNew
-				hash = newHash
 			}
 		}
 	}()
